@@ -5,7 +5,7 @@ mod prelude {
 
     pub use crate::{Error, Result};
 
-    pub use super::{BiliResponse, BiliResponseExt, Request};
+    pub use super::{BiliResponse, BiliResponseExt, Request, RequestResponse};
 }
 
 use prelude::*;
@@ -57,11 +57,13 @@ impl<T: DeserializeOwned> BiliResponseExt<T> for Response {
 /// 所有对 bilibili 的请求都应该实现这个 trait
 pub trait Request: DeserializeOwned {
     type Args;
-    type Future: Future<Output = Result<Self>>;
 
-    fn new(client: &Client, args: Self::Args) -> Self::Future;
+    fn new(client: &Client, args: Self::Args) -> RequestResponse<Self>;
 }
+pub type RequestResponse<T> = Pin<Box<dyn Future<Output = Result<T>>>>;
 
 mod room_info;
-
 pub use room_info::{InfoByRoom, RoomInfo};
+
+mod danmu_info;
+pub use danmu_info::{DanmuInfo, DanmuServer};

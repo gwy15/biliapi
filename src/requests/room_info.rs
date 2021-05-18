@@ -15,9 +15,8 @@ pub struct RoomInfo {
 
 impl Request for InfoByRoom {
     type Args = i64;
-    type Future = Pin<Box<dyn Future<Output = Result<Self>>>>;
 
-    fn new(client: &Client, args: Self::Args) -> Self::Future {
+    fn new(client: &Client, args: Self::Args) -> RequestResponse<Self> {
         const ROOM_INIT_URL: &str =
             "https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom";
 
