@@ -3,6 +3,8 @@ name = "biliapi"
 version = "0.1.0"
 authors = ["gwy15 <gwy15thu@gmail.com>"]
 edition = "2018"
+description = "哔哩哔哩 API 的部分实现"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
