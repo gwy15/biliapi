@@ -1,7 +1,7 @@
-use async_tungstenite::tungstenite::Message as WsMessage;
 use futures::{stream::SplitStream, FutureExt, Stream, StreamExt};
 use reqwest::Client;
 use std::{
+    collections::VecDeque,
     future::Future,
     pin::Pin,
     task::{Context, Poll},
@@ -20,27 +20,11 @@ pub fn new_client() -> reqwest::Result<Client> {
 }
 
 pub struct DanmuConnection {
-    heartbeat_future: Pin<Box<dyn Future<Output = WsError>>>,
+    heartbeat_future: Pin<Box<dyn Future<Output = WsResult<()>>>>,
     read: SplitStream<WebSocketStream>,
+    buffered_msg: VecDeque<ws_protocol::Message>,
 }
 impl DanmuConnection {
-    fn auth_packet(room_id: u64, token: &str) -> WsMessage {
-        let payload = serde_json::json!({
-            "uid": 0,
-            "roomid": room_id,
-            "protover": 2,
-            "platform": "web",
-            "clientver": "1.14.3",
-            "type": 2,
-            "key": token
-        });
-        WsMessage::Binary(ws_protocol::Operations::Auth.make(&payload))
-    }
-
-    fn heartbeat_packet() -> WsMessage {
-        WsMessage::Binary(ws_protocol::Operations::Heartbeat.make(&serde_json::json!({})))
-    }
-
     pub async fn new(url: &str, room_id: u64, token: String) -> WsResult<Self> {
         let (websocket, _http) = async_tungstenite::tokio::connect_async(url).await?;
         let (write, read) = websocket.split();
@@ -48,35 +32,52 @@ impl DanmuConnection {
         let heartbeat_future = Box::pin(async move {
             use futures::prelude::*;
             let mut write = write;
-            if let Err(e) = write.send(Self::auth_packet(room_id, &token)).await {
-                return e;
-            }
+            write
+                .send(ws_protocol::Message::auth(room_id, &token).into())
+                .await?;
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                 debug!("sending heartbeat...");
-                if let Err(e) = write.send(Self::heartbeat_packet()).await {
-                    return e;
-                }
+                write.send(ws_protocol::Message::heartbeat().into()).await?;
             }
         });
         Ok(Self {
             heartbeat_future,
             read,
+            buffered_msg: VecDeque::new(),
         })
     }
 }
 impl Stream for DanmuConnection {
-    type Item = WsResult<WsMessage>;
+    type Item = crate::Result<ws_protocol::Message>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // try poll heartbeat first
         match self.heartbeat_future.poll_unpin(cx) {
-            Poll::Ready(e) => {
+            Poll::Ready(Err(e)) => {
                 warn!("The heartbeat future exited unexpectedly: {:?}", e);
-                return Poll::Ready(Some(Err(e)));
+                return Poll::Ready(Some(Err(e.into())));
             }
+            Poll::Ready(Ok(_)) => unreachable!(),
             Poll::Pending => {}
         }
+        // try buffered messages
+        if let Some(msg) = self.buffered_msg.pop_front() {
+            return Poll::Ready(Some(Ok(msg)));
+        }
+
         // now get a message
-        self.read.poll_next_unpin(cx)
+        match self.read.poll_next_unpin(cx) {
+            Poll::Ready(Some(Ok(ws_message))) => {
+                let msgs = ws_protocol::Message::from_ws_message(ws_message)?;
+                self.buffered_msg.extend(msgs);
+                match self.buffered_msg.pop_front() {
+                    Some(msg) => Poll::Ready(Some(Ok(msg))),
+                    None => Poll::Pending,
+                }
+            }
+            Poll::Pending => Poll::Pending,
+            Poll::Ready(Some(Err(e))) => Poll::Ready(Some(Err(e.into()))),
+            Poll::Ready(None) => Poll::Ready(None),
+        }
     }
 }

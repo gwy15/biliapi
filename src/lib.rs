@@ -26,6 +26,9 @@ pub enum Error {
 
     #[error("The request seems ok but no data is found.")]
     DataNotFound,
+
+    #[error("Failed to parse as bilibili protocol: {0}")]
+    Protocol(#[from] ws_protocol::ParseError),
 }
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
