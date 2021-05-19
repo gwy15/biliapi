@@ -1,11 +1,27 @@
 use anyhow::Result;
 use biliapi::Request;
+use clap::Clap;
 use futures::StreamExt;
 use log::*;
-use std::time::{Duration, Instant};
+use std::{
+    path::PathBuf,
+    time::{Duration, Instant},
+};
 use tokio::{fs, io::AsyncWriteExt};
 
-const ROOM_ID: u64 = 22333522;
+#[derive(Debug, clap::Clap)]
+struct Opts {
+    #[clap(about = "The live room id")]
+    room_id: u64,
+
+    #[clap(
+        long,
+        short,
+        about = "The output file",
+        default_value = "recorded.json"
+    )]
+    output: PathBuf,
+}
 
 async fn run<F: tokio::io::AsyncWrite + Unpin>(
     room_id: u64,
@@ -45,20 +61,19 @@ async fn run<F: tokio::io::AsyncWrite + Unpin>(
 #[tokio::main]
 async fn main() -> Result<()> {
     pretty_env_logger::init();
+
+    let opts = Opts::parse();
+
     let client = biliapi::connection::new_client()?;
 
-    let room_info = biliapi::requests::InfoByRoom::request(&client, ROOM_ID).await?;
+    let room_info = biliapi::requests::InfoByRoom::request(&client, opts.room_id).await?;
     let room_id = room_info.room_info.room_id;
 
     // 创建文件
     let f = fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open(&format!(
-            "recorded-{}-{}.json",
-            ROOM_ID,
-            chrono::Local::today().format("%Y-%m-%d")
-        ))
+        .open(&opts.output)
         .await?;
     let mut f = tokio::io::BufWriter::new(f);
 
