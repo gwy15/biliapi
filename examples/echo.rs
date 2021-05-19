@@ -18,7 +18,7 @@ async fn main() -> Result<()> {
     while let Some(msg) = connection.next().await {
         match msg {
             Ok(msg) => {
-                info!("received msg: {:?}", msg);
+                info!("received msg: {}", msg);
             }
             Err(e) => {
                 error!("error: {:?}", e);

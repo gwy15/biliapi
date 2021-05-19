@@ -24,7 +24,7 @@ pub struct DanmuConnection {
     read: SplitStream<WebSocketStream>,
 }
 impl DanmuConnection {
-    fn auth_packet(room_id: u64, token: &str) -> Vec<u8> {
+    fn auth_packet(room_id: u64, token: &str) -> WsMessage {
         let payload = serde_json::json!({
             "uid": 0,
             "roomid": room_id,
@@ -34,7 +34,11 @@ impl DanmuConnection {
             "type": 2,
             "key": token
         });
-        ws_protocol::Operations::Auth.make(&payload)
+        WsMessage::Binary(ws_protocol::Operations::Auth.make(&payload))
+    }
+
+    fn heartbeat_packet() -> WsMessage {
+        WsMessage::Binary(ws_protocol::Operations::Heartbeat.make(&serde_json::json!({})))
     }
 
     pub async fn new(url: &str, room_id: u64, token: String) -> WsResult<Self> {
@@ -44,16 +48,15 @@ impl DanmuConnection {
         let heartbeat_future = Box::pin(async move {
             use futures::prelude::*;
             let mut write = write;
-            if let Err(e) = write
-                .send(WsMessage::Binary(Self::auth_packet(room_id, &token)))
-                .await
-            {
+            if let Err(e) = write.send(Self::auth_packet(room_id, &token)).await {
                 return e;
             }
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                 debug!("sending heartbeat...");
-                // TODO: heatbeat
+                if let Err(e) = write.send(Self::heartbeat_packet()).await {
+                    return e;
+                }
             }
         });
         Ok(Self {
