@@ -5,6 +5,9 @@ authors = ["gwy15 <gwy15thu@gmail.com>"]
 edition = "2018"
 description = "哔哩哔哩 API 的部分实现"
 license = "MIT"
+homepage = "https://github.com/gwy15/biliapi"
+repository = "https://github.com/gwy15/biliapi"
+documentation = "https://docs.rs/biliapi/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
