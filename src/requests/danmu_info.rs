@@ -17,6 +17,11 @@ pub struct DanmuServer {
     pub wss_port: u16,
     pub ws_port: u16,
 }
+impl DanmuServer {
+    pub fn url(&self) -> String {
+        format!("wss://{}:{}/sub", self.host, self.wss_port)
+    }
+}
 
 impl Request for DanmuInfo {
     type Args = i64;

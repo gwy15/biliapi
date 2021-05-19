@@ -4,6 +4,7 @@
         "Bilibili",
         "bilidanmu",
         "danmu",
-        "reqwest"
+        "reqwest",
+        "tungstenite"
     ]
 }

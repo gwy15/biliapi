@@ -11,6 +11,9 @@ pub enum Error {
     #[error("Network error: {0}")]
     Network(#[from] reqwest::Error),
 
+    #[error("Websocket error: {0}")]
+    WebSocket(#[from] async_tungstenite::tungstenite::Error),
+
     #[error("Unexpected status code: {0}")]
     StatusCode(reqwest::StatusCode),
 
