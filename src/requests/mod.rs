@@ -1,3 +1,16 @@
+//! 基于 HTTP 的各种请求
+//!
+//! # Example
+//! ```
+//! use bilidanmu::Request;
+//! # tokio_test::block_on(async {
+//! let client = bilidanmu::connection::new_client().unwrap();
+//! let info = bilidanmu::requests::InfoByRoom::request(&client, 1).await.unwrap();
+//! // 拿到长房号
+//! assert_eq!(info.room_info.room_id, 5440);
+//! # });
+//! ```
+//!
 mod prelude {
     pub use reqwest::{Client, Response, StatusCode};
     pub use serde::de::DeserializeOwned;
@@ -5,13 +18,15 @@ mod prelude {
 
     pub use crate::{Error, Result};
 
-    pub use super::{BiliResponse, BiliResponseExt, Request, RequestResponse};
+    pub(super) use super::BiliResponseExt;
+    pub use super::{Request, RequestResponse};
 }
 
 use prelude::*;
 
+/// 哔哩哔哩返回的 http 原始 response 对应的结构
 #[derive(Debug, Deserialize)]
-pub struct BiliResponse<T> {
+struct BiliResponse<T> {
     code: i64,
 
     message: String,
@@ -23,6 +38,7 @@ pub struct BiliResponse<T> {
     data: Option<T>,
 }
 impl<T: DeserializeOwned> BiliResponse<T> {
+    #[allow(unused)]
     pub fn into_data(self) -> Option<T> {
         self.data
     }
@@ -44,7 +60,21 @@ impl<T: DeserializeOwned> BiliResponse<T> {
         }
     }
 }
+
 /// 这个 trait 允许直接对 [`Response`] 调用 `bili_data().await`
+///
+/// ```no_run
+/// use bilidanmu::requests::BiliResponseExt;
+///
+/// # async fn dox() -> Result<(), Box<dyn std::error::Error>> {
+/// let response: reqwest::Response = reqwest::Client::new()
+///     .get("https://example.com")
+///     .send().await?;
+///
+/// let data: i32 = response.bili_data().await?;
+/// # Ok(()) }
+/// ```
+///
 pub trait BiliResponseExt<T: DeserializeOwned> {
     fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>>>>;
 }
@@ -54,12 +84,40 @@ impl<T: DeserializeOwned> BiliResponseExt<T> for Response {
     }
 }
 
-/// 所有对 bilibili 的请求都应该实现这个 trait
+/// API 接口的实现 trait
+///
+/// 所有对 bilibili 的请求都应该实现这个 trait，如
+/// ```no_run
+/// use bilidanmu::requests::{Request, BiliResponseExt, RequestResponse};
+/// use serde::Deserialize;
+/// use reqwest::Client;
+///
+/// #[derive(Debug, Deserialize)]
+/// struct SomeApi {
+///     pub field: i32
+/// }
+/// impl Request for SomeApi {
+///     type Args = i64;
+///     fn request(client: &Client, args: i64) -> RequestResponse<Self> {
+///         let request = client.get("https://api.bilibili.com/some/api")
+///             .query(&[("id", args)])
+///             .send();
+///         Box::pin(async move {
+///             // 这里需要引入 `BiliResponseExt`
+///             request.await?.bili_data().await
+///         })
+///
+///     }
+/// }
+/// ```
 pub trait Request: DeserializeOwned {
+    /// 请求对应的参数
     type Args;
 
-    fn new(client: &Client, args: Self::Args) -> RequestResponse<Self>;
+    /// 请求的实现
+    fn request(client: &Client, args: Self::Args) -> RequestResponse<Self>;
 }
+/// [`Request`] trait 返回结果的封装，本质就是 `Pin<Box<dyn Future<Output = Result<T>>>>`
 pub type RequestResponse<T> = Pin<Box<dyn Future<Output = Result<T>>>>;
 
 mod room_info;

@@ -1,3 +1,5 @@
+//! 连接模块，包括 http client 和 websocket （直播间）连接
+//!
 use futures::{stream::SplitStream, FutureExt, Stream, StreamExt};
 use reqwest::Client;
 use std::{
@@ -13,18 +15,36 @@ use async_tungstenite::tungstenite::Error as WsError;
 use crate::ws_protocol;
 type WsResult<T> = Result<T, WsError>;
 
+/// 创建一个新的 http 连接
 pub fn new_client() -> reqwest::Result<Client> {
     const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
     trace!("user agent name: {}", USER_AGENT);
     Client::builder().user_agent(USER_AGENT).build()
 }
 
-pub struct DanmuConnection {
+/// 直播间 websocket 连接，实现了 [`Stream`][`futures::Stream`]
+///
+/// # Example
+/// ```no_run
+/// # use bilidanmu::connection::LiveConnection;
+/// # let (url, room_id, token) = ("", 1, "".to_string());
+/// # tokio_test::block_on(async {
+/// use futures::StreamExt;
+/// // 这些信息可以从 InfoByRoom 接口拿到
+/// let mut con = LiveConnection::new(url, room_id, token).await.unwrap();
+/// while let Some(msg) = con.next().await {
+///     let msg = msg.unwrap();
+/// }
+/// # });
+/// ```
+pub struct LiveConnection {
     heartbeat_future: Pin<Box<dyn Future<Output = WsResult<()>>>>,
     read: SplitStream<WebSocketStream>,
     buffered_msg: VecDeque<ws_protocol::Message>,
 }
-impl DanmuConnection {
+impl LiveConnection {
+    /// 从 url 建立一个新连接，需要 room_id 和 token，这些数据可以从
+    /// [`InfoByRoom`][`crate::requests::InfoByRoom`] 拿到
     pub async fn new(url: &str, room_id: u64, token: String) -> WsResult<Self> {
         let (websocket, _http) = async_tungstenite::tokio::connect_async(url).await?;
         let (write, read) = websocket.split();
@@ -48,7 +68,7 @@ impl DanmuConnection {
         })
     }
 }
-impl Stream for DanmuConnection {
+impl Stream for LiveConnection {
     type Item = crate::Result<ws_protocol::Message>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // try poll heartbeat first

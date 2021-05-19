@@ -1,22 +1,30 @@
 use super::prelude::*;
 
-/// 从 /xlive/web-room/v1/index/getInfoByRoom 接口拿到的信息
+/// 通过房号拿到直播间的信息
+///
+/// API 源：/xlive/web-room/v1/index/getInfoByRoom
 #[derive(Debug, Deserialize)]
 pub struct InfoByRoom {
+    /// 直播间信息
     pub room_info: RoomInfo,
 }
+/// [`InfoByRoom`] 的子信息，代表直播间信息
 #[derive(Debug, Deserialize)]
 pub struct RoomInfo {
+    /// 长房号，如 5440
     pub room_id: u64,
+    /// 短房号，如 1
     pub short_id: u64,
+    /// 直播间封面 url
     pub cover: String,
+    /// 直播间关键帧
     pub keyframe: String,
 }
 
 impl Request for InfoByRoom {
     type Args = u64;
 
-    fn new(client: &Client, args: Self::Args) -> RequestResponse<Self> {
+    fn request(client: &Client, args: Self::Args) -> RequestResponse<Self> {
         const ROOM_INIT_URL: &str =
             "https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom";
 
@@ -35,11 +43,11 @@ mod tests {
     async fn test_get_cgg_room_info() -> Result<()> {
         let client = crate::connection::new_client()?;
         // 超果果
-        let info = crate::requests::InfoByRoom::new(&client, 646).await?;
+        let info = crate::requests::InfoByRoom::request(&client, 646).await?;
         assert_eq!(info.room_info.room_id, 21133);
         assert_eq!(info.room_info.short_id, 646);
 
-        let info = crate::requests::InfoByRoom::new(&client, 21133).await?;
+        let info = crate::requests::InfoByRoom::request(&client, 21133).await?;
         assert_eq!(info.room_info.room_id, 21133);
         assert_eq!(info.room_info.short_id, 646);
         Ok(())
@@ -48,7 +56,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_non_exist_room_info() -> Result<()> {
         let client = crate::connection::new_client()?;
-        let info = crate::requests::InfoByRoom::new(&client, 38)
+        let info = crate::requests::InfoByRoom::request(&client, 38)
             .await
             .err()
             .unwrap();

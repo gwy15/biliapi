@@ -1,7 +1,10 @@
+//! bilibili 直播间传回来的数据
+
 use std::fmt::{self, Debug, Display};
 
 use async_tungstenite::tungstenite::Message as WsMessage;
 
+/// 解析直播间数据时发生的错误
 #[derive(Debug, thiserror::Error)]
 pub enum ParseError {
     #[error("Websocket packet type not supported: {0}")]
@@ -14,6 +17,7 @@ pub enum ParseError {
     Encoding(#[from] std::string::FromUtf8Error),
 }
 
+/// pure magic
 pub mod magic {
 
     /// I    |      H    |  H  |  I  |   I
@@ -24,7 +28,9 @@ pub mod magic {
     pub const VER_ZLIB_COMPRESSED: u16 = 2;
     pub const VER_NORMAL: u16 = 1;
 
-    // # go-common\app\service\main\broadcast\model\operation.go
+    /// 已知的操作
+    ///
+    /// 从泄露代码的 app/service/main/broadcast/model/operation.go 可以看到命名
     #[enum_repr::EnumRepr(type = "u32")]
     #[derive(Debug, Clone, Copy)]
     pub enum KnownOperation {
@@ -49,6 +55,7 @@ pub mod magic {
     }
 }
 
+/// 每个 packet 对应的 operation
 #[derive(Debug, Clone, Copy)]
 pub enum Operation {
     Known(magic::KnownOperation),
@@ -79,14 +86,17 @@ impl From<u32> for Operation {
     }
 }
 
+/// 对应 websocket 返回的 packet，基本上没进行处理
 #[derive(Debug)]
 pub struct Message {
+    /// packet 对应的 operation，大部分应该都是 [`SendMsgReply`][`magic::KnownOperation::SendMsgReply`]
     pub operation: Operation,
-    // body: json string
+    /// packet 对应的 数据，大部分都应该是 json string
     pub body: String,
 }
 
 impl Message {
+    /// 生成一个 auth 包
     pub fn auth(room_id: u64, token: &str) -> Self {
         let payload = serde_json::json!({
             "uid": 0,
@@ -104,6 +114,7 @@ impl Message {
             body,
         }
     }
+    /// 生成一个心跳包
     pub fn heartbeat() -> Message {
         Message {
             operation: Operation::Known(magic::KnownOperation::Heartbeat),
@@ -111,6 +122,7 @@ impl Message {
         }
     }
 
+    /// 从 bytes 解析出一堆 [`Message`]
     pub fn from_bytes(bytes: &[u8]) -> Result<Vec<Message>, ParseError> {
         use byteorder::{BigEndian, ReadBytesExt};
         use std::io::Read;
@@ -184,6 +196,7 @@ impl Message {
         Ok(messages)
     }
 
+    /// 从 [`WsMessage`] 解析出一堆 [`Message`]
     pub fn from_ws_message(ws_message: WsMessage) -> Result<Vec<Message>, ParseError> {
         match ws_message {
             WsMessage::Binary(bytes) => Self::from_bytes(&bytes),

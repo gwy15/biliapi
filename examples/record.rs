@@ -5,7 +5,7 @@ use log::*;
 use std::time::{Duration, Instant};
 use tokio::{fs, io::AsyncWriteExt};
 
-const ROOM_ID: u64 = 23105590;
+const ROOM_ID: u64 = 22333522;
 
 async fn run<F: tokio::io::AsyncWrite + Unpin>(
     room_id: u64,
@@ -13,12 +13,12 @@ async fn run<F: tokio::io::AsyncWrite + Unpin>(
     client: &reqwest::Client,
 ) -> Result<()> {
     // 拿到弹幕数据
-    let danmu_info = bilidanmu::requests::DanmuInfo::new(&client, room_id).await?;
+    let danmu_info = bilidanmu::requests::DanmuInfo::request(&client, room_id).await?;
     let server = &danmu_info.servers[0];
     let url = server.url();
 
     let mut connection =
-        bilidanmu::connection::DanmuConnection::new(&url, room_id, danmu_info.token).await?;
+        bilidanmu::connection::LiveConnection::new(&url, room_id, danmu_info.token).await?;
     while let Some(msg) = connection.next().await {
         match msg {
             Ok(msg) => {
@@ -47,14 +47,18 @@ async fn main() -> Result<()> {
     pretty_env_logger::init();
     let client = bilidanmu::connection::new_client()?;
 
-    let room_info = bilidanmu::requests::InfoByRoom::new(&client, ROOM_ID).await?;
+    let room_info = bilidanmu::requests::InfoByRoom::request(&client, ROOM_ID).await?;
     let room_id = room_info.room_info.room_id;
 
     // 创建文件
     let f = fs::OpenOptions::new()
         .create(true)
         .append(true)
-        .open("recorded.json")
+        .open(&format!(
+            "recorded-{}-{}.json",
+            ROOM_ID,
+            chrono::Local::today().format("%Y-%m-%d")
+        ))
         .await?;
     let mut f = tokio::io::BufWriter::new(f);
 
