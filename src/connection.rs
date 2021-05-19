@@ -26,7 +26,7 @@ pub fn new_client() -> reqwest::Result<Client> {
 ///
 /// # Example
 /// ```no_run
-/// # use bilidanmu::connection::LiveConnection;
+/// # use biliapi::connection::LiveConnection;
 /// # let (url, room_id, token) = ("", 1, "".to_string());
 /// # tokio_test::block_on(async {
 /// use futures::StreamExt;

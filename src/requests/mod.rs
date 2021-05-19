@@ -2,10 +2,10 @@
 //!
 //! # Example
 //! ```
-//! use bilidanmu::Request;
+//! use biliapi::Request;
 //! # tokio_test::block_on(async {
-//! let client = bilidanmu::connection::new_client().unwrap();
-//! let info = bilidanmu::requests::InfoByRoom::request(&client, 1).await.unwrap();
+//! let client = biliapi::connection::new_client().unwrap();
+//! let info = biliapi::requests::InfoByRoom::request(&client, 1).await.unwrap();
 //! // 拿到长房号
 //! assert_eq!(info.room_info.room_id, 5440);
 //! # });
@@ -64,7 +64,7 @@ impl<T: DeserializeOwned> BiliResponse<T> {
 /// 这个 trait 允许直接对 [`Response`] 调用 `bili_data().await`
 ///
 /// ```no_run
-/// use bilidanmu::requests::BiliResponseExt;
+/// use biliapi::requests::BiliResponseExt;
 ///
 /// # async fn dox() -> Result<(), Box<dyn std::error::Error>> {
 /// let response: reqwest::Response = reqwest::Client::new()
@@ -88,7 +88,7 @@ impl<T: DeserializeOwned> BiliResponseExt<T> for Response {
 ///
 /// 所有对 bilibili 的请求都应该实现这个 trait，如
 /// ```no_run
-/// use bilidanmu::requests::{Request, BiliResponseExt, RequestResponse};
+/// use biliapi::requests::{Request, BiliResponseExt, RequestResponse};
 /// use serde::Deserialize;
 /// use reqwest::Client;
 ///
