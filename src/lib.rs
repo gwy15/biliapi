@@ -5,6 +5,7 @@ extern crate serde;
 
 pub mod connection;
 pub mod requests;
+pub mod ws_protocol;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {

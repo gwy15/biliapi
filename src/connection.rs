@@ -9,6 +9,8 @@ use std::{
 
 type WebSocketStream = async_tungstenite::WebSocketStream<async_tungstenite::tokio::ConnectStream>;
 use async_tungstenite::tungstenite::Error as WsError;
+
+use crate::ws_protocol;
 type WsResult<T> = Result<T, WsError>;
 
 pub fn new_client() -> reqwest::Result<Client> {
@@ -22,13 +24,32 @@ pub struct DanmuConnection {
     read: SplitStream<WebSocketStream>,
 }
 impl DanmuConnection {
-    pub async fn new(url: &str) -> WsResult<Self> {
+    fn auth_packet(room_id: u64, token: &str) -> Vec<u8> {
+        let payload = serde_json::json!({
+            "uid": 0,
+            "roomid": room_id,
+            "protover": 2,
+            "platform": "web",
+            "clientver": "1.14.3",
+            "type": 2,
+            "key": token
+        });
+        ws_protocol::Operations::Auth.make(&payload)
+    }
+
+    pub async fn new(url: &str, room_id: u64, token: String) -> WsResult<Self> {
         let (websocket, _http) = async_tungstenite::tokio::connect_async(url).await?;
         let (write, read) = websocket.split();
         // start sending
         let heartbeat_future = Box::pin(async move {
-            // TODO: auth
-            let _write = write;
+            use futures::prelude::*;
+            let mut write = write;
+            if let Err(e) = write
+                .send(WsMessage::Binary(Self::auth_packet(room_id, &token)))
+                .await
+            {
+                return e;
+            }
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                 debug!("sending heartbeat...");

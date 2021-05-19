@@ -24,7 +24,7 @@ impl DanmuServer {
 }
 
 impl Request for DanmuInfo {
-    type Args = i64;
+    type Args = u64;
 
     fn new(client: &Client, args: Self::Args) -> RequestResponse<Self> {
         const DANMU_INFO_URL: &str =

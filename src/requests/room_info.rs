@@ -14,7 +14,7 @@ pub struct RoomInfo {
 }
 
 impl Request for InfoByRoom {
-    type Args = i64;
+    type Args = u64;
 
     fn new(client: &Client, args: Self::Args) -> RequestResponse<Self> {
         const ROOM_INIT_URL: &str =
