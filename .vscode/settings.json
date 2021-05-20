@@ -5,6 +5,7 @@
         "UNREGISTER",
         "biliapi",
         "danmu",
+        "ddpanel",
         "reqwest",
         "tungstenite"
     ]

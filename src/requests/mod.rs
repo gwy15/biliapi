@@ -76,10 +76,10 @@ impl<T: DeserializeOwned> BiliResponse<T> {
 /// ```
 ///
 pub trait BiliResponseExt<T: DeserializeOwned> {
-    fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>>>>;
+    fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>> + Send>>;
 }
 impl<T: DeserializeOwned> BiliResponseExt<T> for Response {
-    fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>>>> {
+    fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>> + Send>> {
         Box::pin(async move { BiliResponse::<T>::from_response(self).await })
     }
 }
@@ -118,7 +118,7 @@ pub trait Request: DeserializeOwned {
     fn request(client: &Client, args: Self::Args) -> RequestResponse<Self>;
 }
 /// [`Request`] trait 返回结果的封装，本质就是 `Pin<Box<dyn Future<Output = Result<T>>>>`
-pub type RequestResponse<T> = Pin<Box<dyn Future<Output = Result<T>>>>;
+pub type RequestResponse<T> = Pin<Box<dyn Future<Output = Result<T>> + Send>>;
 
 mod room_info;
 pub use room_info::{InfoByRoom, RoomInfo};

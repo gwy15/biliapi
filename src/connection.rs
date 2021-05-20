@@ -38,7 +38,7 @@ pub fn new_client() -> reqwest::Result<Client> {
 /// # });
 /// ```
 pub struct LiveConnection {
-    heartbeat_future: Pin<Box<dyn Future<Output = WsResult<()>>>>,
+    heartbeat_future: Pin<Box<dyn Future<Output = WsResult<()>> + Send>>,
     read: SplitStream<WebSocketStream>,
     buffered_msg: VecDeque<ws_protocol::Message>,
 }
