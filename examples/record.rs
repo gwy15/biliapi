@@ -35,9 +35,12 @@ async fn run<F: tokio::io::AsyncWrite + Unpin>(
 
     let mut connection =
         biliapi::connection::LiveConnection::new(&url, room_id, danmu_info.token).await?;
+    info!("room {} connected.", room_id);
+    let mut count: u64 = 0;
     while let Some(msg) = connection.next().await {
         match msg {
             Ok(msg) => {
+                count += 1;
                 f.write_all(
                     format!(
                         "{} {}\n{}\n",
@@ -48,6 +51,9 @@ async fn run<F: tokio::io::AsyncWrite + Unpin>(
                     .as_bytes(),
                 )
                 .await?;
+                if count > 0 && count % 1_000 == 0 {
+                    info!("{} records written.", count);
+                }
             }
             Err(e) => {
                 error!("error: {:?}", e);
@@ -70,6 +76,7 @@ async fn main() -> Result<()> {
     let room_id = room_info.room_info.room_id;
 
     // 创建文件
+    info!("recoding records to file {:?}", opts.output);
     let f = fs::OpenOptions::new()
         .create(true)
         .append(true)
