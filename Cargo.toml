@@ -1,6 +1,6 @@
 [package]
 name = "biliapi"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["gwy15 <gwy15thu@gmail.com>"]
 edition = "2018"
 description = "哔哩哔哩 API 的部分实现"
