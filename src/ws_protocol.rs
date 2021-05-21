@@ -98,16 +98,16 @@ impl From<u32> for Operation {
 
 /// 对应 websocket 返回的 packet，基本上没进行处理
 #[derive(Debug, Serialize)]
-pub struct Message {
+pub struct Packet {
     /// packet 对应的 operation，大部分应该都是 [`SendMsgReply`][`magic::KnownOperation::SendMsgReply`]
     pub operation: Operation,
-    /// packet 对应的 数据，大部分都应该是 json string
+    /// packet 对应的 数据，大部分都应该是 json string。这里不做任何解析
     pub body: String,
-
+    /// 对于返回的包，会带一个时间戳，表示收到时的时间戳，方便重放
     pub time: DateTime<Local>,
 }
 
-impl Message {
+impl Packet {
     /// 生成一个 auth 包
     pub fn auth(room_id: u64, token: &str) -> Self {
         let payload = serde_json::json!({
@@ -128,8 +128,8 @@ impl Message {
         }
     }
     /// 生成一个心跳包
-    pub fn heartbeat() -> Message {
-        Message {
+    pub fn heartbeat() -> Packet {
+        Packet {
             operation: Operation::Known(magic::KnownOperation::Heartbeat),
             body: "{}".to_string(),
             time: Local::now(),
@@ -137,7 +137,7 @@ impl Message {
     }
 
     /// 从 bytes 解析出一堆 [`Message`]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Vec<Message>, ParseError> {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Vec<Packet>, ParseError> {
         use byteorder::{BigEndian, ReadBytesExt};
         use std::io::Read;
 
@@ -181,7 +181,7 @@ impl Message {
                     // 烦不烦，能不能统一返回 string
                     let mut body_buffer = body_buffer;
                     let popularity = body_buffer.read_u32::<BigEndian>()?;
-                    let message = Message {
+                    let message = Packet {
                         operation,
                         body: popularity.to_string(),
                         time: Local::now(),
@@ -201,7 +201,7 @@ impl Message {
                         }
                     };
 
-                    let message = Message {
+                    let message = Packet {
                         operation,
                         body,
                         time: Local::now(),
@@ -216,7 +216,7 @@ impl Message {
     }
 
     /// 从 [`WsMessage`] 解析出一堆 [`Message`]
-    pub fn from_ws_message(ws_message: WsMessage) -> Result<Vec<Message>, ParseError> {
+    pub fn from_ws_message(ws_message: WsMessage) -> Result<Vec<Packet>, ParseError> {
         match ws_message {
             WsMessage::Binary(bytes) => Self::from_bytes(&bytes),
             ws_message => {
@@ -227,8 +227,8 @@ impl Message {
     }
 }
 
-impl From<Message> for WsMessage {
-    fn from(msg: Message) -> WsMessage {
+impl From<Packet> for WsMessage {
+    fn from(msg: Packet) -> WsMessage {
         use byteorder::{BigEndian, WriteBytesExt};
 
         let body_size = msg.body.len();

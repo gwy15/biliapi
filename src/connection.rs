@@ -40,7 +40,7 @@ pub fn new_client() -> reqwest::Result<Client> {
 pub struct LiveConnection {
     heartbeat_future: Pin<Box<dyn Future<Output = WsResult<()>> + Send>>,
     read: SplitStream<WebSocketStream>,
-    buffered_msg: VecDeque<ws_protocol::Message>,
+    buffered_msg: VecDeque<ws_protocol::Packet>,
 }
 impl LiveConnection {
     /// 从 url 建立一个新连接，需要 room_id 和 token，这些数据可以从
@@ -53,12 +53,12 @@ impl LiveConnection {
             use futures::prelude::*;
             let mut write = write;
             write
-                .send(ws_protocol::Message::auth(room_id, &token).into())
+                .send(ws_protocol::Packet::auth(room_id, &token).into())
                 .await?;
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                 debug!("sending heartbeat...");
-                write.send(ws_protocol::Message::heartbeat().into()).await?;
+                write.send(ws_protocol::Packet::heartbeat().into()).await?;
             }
         });
         Ok(Self {
@@ -69,7 +69,7 @@ impl LiveConnection {
     }
 }
 impl Stream for LiveConnection {
-    type Item = crate::Result<ws_protocol::Message>;
+    type Item = crate::Result<ws_protocol::Packet>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // try poll heartbeat first
         match self.heartbeat_future.poll_unpin(cx) {
@@ -88,7 +88,7 @@ impl Stream for LiveConnection {
         // now get a message
         match self.read.poll_next_unpin(cx) {
             Poll::Ready(Some(Ok(ws_message))) => {
-                let msgs = ws_protocol::Message::from_ws_message(ws_message)?;
+                let msgs = ws_protocol::Packet::from_ws_message(ws_message)?;
                 self.buffered_msg.extend(msgs);
                 match self.buffered_msg.pop_front() {
                     Some(msg) => Poll::Ready(Some(Ok(msg))),
