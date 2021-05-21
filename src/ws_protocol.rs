@@ -97,7 +97,7 @@ impl From<u32> for Operation {
 }
 
 /// 对应 websocket 返回的 packet，基本上没进行处理
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct Packet {
     /// packet 对应的 operation，大部分应该都是 [`SendMsgReply`][`magic::KnownOperation::SendMsgReply`]
     pub operation: Operation,
