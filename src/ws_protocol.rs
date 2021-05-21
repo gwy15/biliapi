@@ -3,6 +3,8 @@
 use std::fmt::{self, Debug, Display};
 
 use async_tungstenite::tungstenite::Message as WsMessage;
+use chrono::{DateTime, Local};
+use serde::Serialize;
 
 /// 解析直播间数据时发生的错误
 #[derive(Debug, thiserror::Error)]
@@ -69,6 +71,14 @@ impl Display for Operation {
         }
     }
 }
+impl Serialize for Operation {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
 impl From<Operation> for u32 {
     fn from(op: Operation) -> u32 {
         match op {
@@ -87,12 +97,14 @@ impl From<u32> for Operation {
 }
 
 /// 对应 websocket 返回的 packet，基本上没进行处理
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Message {
     /// packet 对应的 operation，大部分应该都是 [`SendMsgReply`][`magic::KnownOperation::SendMsgReply`]
     pub operation: Operation,
     /// packet 对应的 数据，大部分都应该是 json string
     pub body: String,
+
+    pub time: DateTime<Local>,
 }
 
 impl Message {
@@ -112,6 +124,7 @@ impl Message {
         Self {
             operation: Operation::Known(magic::KnownOperation::Auth),
             body,
+            time: Local::now(),
         }
     }
     /// 生成一个心跳包
@@ -119,6 +132,7 @@ impl Message {
         Message {
             operation: Operation::Known(magic::KnownOperation::Heartbeat),
             body: "{}".to_string(),
+            time: Local::now(),
         }
     }
 
@@ -170,6 +184,7 @@ impl Message {
                     let message = Message {
                         operation,
                         body: popularity.to_string(),
+                        time: Local::now(),
                     };
                     messages.push(message);
                 }
@@ -186,7 +201,11 @@ impl Message {
                         }
                     };
 
-                    let message = Message { operation, body };
+                    let message = Message {
+                        operation,
+                        body,
+                        time: Local::now(),
+                    };
                     messages.push(message);
                 }
             }
