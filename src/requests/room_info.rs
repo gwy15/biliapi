@@ -7,6 +7,8 @@ use super::prelude::*;
 pub struct InfoByRoom {
     /// 直播间信息
     pub room_info: RoomInfo,
+    /// 主播有关的信息
+    pub anchor_info: AnchorInfo,
 }
 /// [`InfoByRoom`] 的子信息，代表直播间信息
 #[derive(Debug, Deserialize)]
@@ -19,6 +21,22 @@ pub struct RoomInfo {
     pub cover: String,
     /// 直播间关键帧
     pub keyframe: String,
+}
+/// [`InfoByRoom`] 的子信息，跟主播相关的信息
+#[derive(Debug, Deserialize)]
+pub struct AnchorInfo {
+    #[serde(rename = "base_info")]
+    pub base: AnchorBaseInfo,
+}
+/// [`AnchorInfo`] 的子信息，跟主播相关的信息
+#[derive(Debug, Deserialize)]
+pub struct AnchorBaseInfo {
+    // 用户名
+    pub uname: String,
+    // 头像
+    pub face: String,
+    // 性别
+    pub gender: String,
 }
 
 impl Request for InfoByRoom {
@@ -50,6 +68,9 @@ mod tests {
         let info = crate::requests::InfoByRoom::request(&client, 21133).await?;
         assert_eq!(info.room_info.room_id, 21133);
         assert_eq!(info.room_info.short_id, 646);
+
+        assert_eq!(info.anchor_info.base.uname, "超果果mc");
+        assert_eq!(info.anchor_info.base.gender, "男");
         Ok(())
     }
 
