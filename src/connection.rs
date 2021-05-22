@@ -38,6 +38,7 @@ pub fn new_client() -> reqwest::Result<Client> {
 /// # });
 /// ```
 pub struct LiveConnection {
+    room_id: u64,
     heartbeat_future: Pin<Box<dyn Future<Output = WsResult<()>> + Send>>,
     read: SplitStream<WebSocketStream>,
     buffered_msg: VecDeque<ws_protocol::Packet>,
@@ -62,6 +63,7 @@ impl LiveConnection {
             }
         });
         Ok(Self {
+            room_id,
             heartbeat_future,
             read,
             buffered_msg: VecDeque::new(),
@@ -88,7 +90,7 @@ impl Stream for LiveConnection {
         // now get a message
         match self.read.poll_next_unpin(cx) {
             Poll::Ready(Some(Ok(ws_message))) => {
-                let msgs = ws_protocol::Packet::from_ws_message(ws_message)?;
+                let msgs = ws_protocol::Packet::from_ws_message(ws_message, self.room_id)?;
                 self.buffered_msg.extend(msgs);
                 match self.buffered_msg.pop_front() {
                     Some(msg) => Poll::Ready(Some(Ok(msg))),

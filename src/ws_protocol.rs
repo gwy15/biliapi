@@ -57,6 +57,8 @@ pub mod magic {
     }
 }
 
+pub use magic::KnownOperation;
+
 /// 每个 packet 对应的 operation
 #[derive(Debug, Clone, Copy)]
 pub enum Operation {
@@ -103,8 +105,10 @@ pub struct Packet {
     pub operation: Operation,
     /// packet 对应的 数据，大部分都应该是 json string。这里不做任何解析
     pub body: String,
-    /// 对于返回的包，会带一个时间戳，表示收到时的时间戳，方便重放
+    /// 返回的包会带一个时间戳，表示收到时的时间戳，方便重放
     pub time: DateTime<Local>,
+    /// 返回的包会带一个 room_id，表示收到的房间，方便重放
+    pub room_id: u64,
 }
 
 impl Packet {
@@ -125,6 +129,7 @@ impl Packet {
             operation: Operation::Known(magic::KnownOperation::Auth),
             body,
             time: Local::now(),
+            room_id,
         }
     }
     /// 生成一个心跳包
@@ -133,11 +138,12 @@ impl Packet {
             operation: Operation::Known(magic::KnownOperation::Heartbeat),
             body: "{}".to_string(),
             time: Local::now(),
+            room_id: 0,
         }
     }
 
     /// 从 bytes 解析出一堆 [`Message`]
-    pub fn from_bytes(bytes: &[u8]) -> Result<Vec<Packet>, ParseError> {
+    pub fn from_bytes(bytes: &[u8], room_id: u64) -> Result<Vec<Packet>, ParseError> {
         use byteorder::{BigEndian, ReadBytesExt};
         use std::io::Read;
 
@@ -168,7 +174,7 @@ impl Packet {
                     let bytes_read = z.read_to_end(&mut buffer)?;
                     trace!("read {} bytes from zlib", bytes_read);
                     // 居然还要递归
-                    let sub_messages = Self::from_bytes(&buffer).map_err(|e| match e {
+                    let sub_messages = Self::from_bytes(&buffer, room_id).map_err(|e| match e {
                         ParseError::Encoding(e) => {
                             debug!("utf8 decoded error, raw bytes = {:?}", bytes);
                             e.into()
@@ -185,6 +191,7 @@ impl Packet {
                         operation,
                         body: popularity.to_string(),
                         time: Local::now(),
+                        room_id,
                     };
                     messages.push(message);
                 }
@@ -205,6 +212,7 @@ impl Packet {
                         operation,
                         body,
                         time: Local::now(),
+                        room_id,
                     };
                     messages.push(message);
                 }
@@ -216,9 +224,9 @@ impl Packet {
     }
 
     /// 从 [`WsMessage`] 解析出一堆 [`Message`]
-    pub fn from_ws_message(ws_message: WsMessage) -> Result<Vec<Packet>, ParseError> {
+    pub fn from_ws_message(ws_message: WsMessage, room_id: u64) -> Result<Vec<Packet>, ParseError> {
         match ws_message {
-            WsMessage::Binary(bytes) => Self::from_bytes(&bytes),
+            WsMessage::Binary(bytes) => Self::from_bytes(&bytes, room_id),
             ws_message => {
                 warn!("Unknown type of websocket message: {:?}", ws_message);
                 Err(ParseError::WsTypeNotSupported(ws_message.to_string()))
