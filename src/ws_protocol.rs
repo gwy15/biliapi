@@ -4,7 +4,7 @@ use std::fmt::{self, Debug, Display};
 
 use async_tungstenite::tungstenite::Message as WsMessage;
 use chrono::{DateTime, Local};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// 解析直播间数据时发生的错误
 #[derive(Debug, thiserror::Error)]
@@ -34,7 +34,7 @@ pub mod magic {
     ///
     /// 从泄露代码的 app/service/main/broadcast/model/operation.go 可以看到命名
     #[enum_repr::EnumRepr(type = "u32")]
-    #[derive(Debug, Clone, Copy)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize)]
     pub enum KnownOperation {
         Handshake = 0,
         HandshakeReply = 1,
@@ -60,7 +60,7 @@ pub mod magic {
 pub use magic::KnownOperation;
 
 /// 每个 packet 对应的 operation
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Operation {
     Known(magic::KnownOperation),
     Unknown(u32),
@@ -81,6 +81,20 @@ impl Serialize for Operation {
         serializer.serialize_str(&self.to_string())
     }
 }
+impl<'de> Deserialize<'de> for Operation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'de>,
+    {
+        match KnownOperation::deserialize(deserializer) {
+            Ok(known) => Ok(Operation::Known(known)),
+            Err(e) => {
+                // TODO: implement
+                Err(e)
+            }
+        }
+    }
+}
 impl From<Operation> for u32 {
     fn from(op: Operation) -> u32 {
         match op {
@@ -99,7 +113,7 @@ impl From<u32> for Operation {
 }
 
 /// 对应 websocket 返回的 packet，基本上没进行处理
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Packet {
     /// packet 对应的 operation，大部分应该都是 [`SendMsgReply`][`magic::KnownOperation::SendMsgReply`]
     pub operation: Operation,
@@ -257,5 +271,54 @@ impl From<Packet> for WsMessage {
 
         let bytes = cursor.into_inner();
         WsMessage::Binary(bytes)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_operation_serialize() {
+        use serde_json::json;
+        assert_eq!(
+            serde_json::to_string(&json!({
+                "op": Operation::Known(KnownOperation::SendMsgReply)
+            }))
+            .unwrap(),
+            r#"{"op":"SendMsgReply"}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&json!({
+                "op": Operation::Unknown(114514)
+            }))
+            .unwrap(),
+            r#"{"op":"Unknown(114514)"}"#
+        );
+    }
+
+    #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]
+    struct Test {
+        op: Operation,
+    }
+
+    #[test]
+    fn test_operation_deserialize_known() {
+        assert_eq!(
+            serde_json::from_str::<Test>(r#"{"op":"SendMsgReply"}"#).unwrap(),
+            Test {
+                op: Operation::Known(KnownOperation::SendMsgReply)
+            }
+        );
+    }
+
+    #[test]
+    #[ignore = "not yet implemented"]
+    fn test_operation_deserialize_unknown() {
+        assert_eq!(
+            serde_json::from_str::<Test>(r#"{"op":"Unknown(114514)"}"#).unwrap(),
+            Test {
+                op: Operation::Unknown(114514)
+            }
+        );
     }
 }
