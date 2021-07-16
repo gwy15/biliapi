@@ -125,3 +125,6 @@ pub use room_info::{InfoByRoom, RoomInfo};
 
 mod danmu_info;
 pub use danmu_info::{DanmuInfo, DanmuServer};
+
+mod video_info;
+pub use video_info::{VideoInfo, VideoStat};
