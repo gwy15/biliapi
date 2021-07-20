@@ -29,6 +29,7 @@ use prelude::*;
 struct BiliResponse<T> {
     code: i64,
 
+    #[serde(default)]
     message: String,
 
     // 不知道干啥的
@@ -47,7 +48,10 @@ impl<T: DeserializeOwned> BiliResponse<T> {
             return Err(Error::StatusCode(response.status()));
         }
         let response_text = response.text().await?;
-        let this: Self = serde_json::from_str(&response_text)?;
+        let this: Self = serde_json::from_str(&response_text).map_err(|e| {
+            debug!("response text = {}", response_text);
+            e
+        })?;
         if this.code != 0 {
             return Err(Error::BiliCustom {
                 code: this.code,
@@ -128,3 +132,9 @@ pub use danmu_info::{DanmuInfo, DanmuServer};
 
 mod video_info;
 pub use video_info::{VideoInfo, VideoStat};
+
+mod login;
+pub use login::{CheckQrLogin, QrLoginRequest};
+
+mod uploader_stat;
+pub use uploader_stat::UploaderStat;
