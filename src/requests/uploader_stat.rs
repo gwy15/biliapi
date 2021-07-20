@@ -5,13 +5,13 @@ use serde::Deserialize;
 #[derive(Debug, PartialEq)]
 pub struct UploaderStat {
     /// 视频阅读数
-    video_views: u64,
+    pub video_views: u64,
 
     /// 文章阅读数
-    article_views: u64,
+    pub article_views: u64,
 
     /// 获赞数
-    likes: u64,
+    pub likes: u64,
 }
 
 impl<'de> Deserialize<'de> for UploaderStat {
@@ -40,7 +40,7 @@ impl<'de> Deserialize<'de> for UploaderStat {
 
 impl Request for UploaderStat {
     /// 用户的 mid
-    type Args = i64;
+    type Args = u64;
     fn request(client: &Client, args: Self::Args) -> RequestResponse<Self> {
         const URL: &str = "https://api.bilibili.com/x/space/upstat";
         let r = client.get(URL).query(&[("mid", args)]).send();

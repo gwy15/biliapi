@@ -138,3 +138,6 @@ pub use login::{CheckQrLogin, QrLoginRequest};
 
 mod uploader_stat;
 pub use uploader_stat::UploaderStat;
+
+mod user_info;
+pub use user_info::UserInfo;
