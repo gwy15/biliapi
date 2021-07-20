@@ -19,7 +19,10 @@ type WsResult<T> = Result<T, WsError>;
 pub fn new_client() -> reqwest::Result<Client> {
     const USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
     trace!("user agent name: {}", USER_AGENT);
-    Client::builder().user_agent(USER_AGENT).build()
+    Client::builder()
+        .user_agent(USER_AGENT)
+        .cookie_store(true)
+        .build()
 }
 
 /// 直播间 websocket 连接，实现了 [`Stream`][`futures::Stream`]
