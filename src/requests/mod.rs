@@ -141,3 +141,6 @@ pub use uploader_stat::UploaderStat;
 
 mod user_info;
 pub use user_info::UserInfo;
+
+mod vote_info;
+pub use vote_info::VoteInfo;
