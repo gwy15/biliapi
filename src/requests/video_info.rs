@@ -6,7 +6,7 @@ use super::prelude::*;
 
 /// 一个 BV 视频的信息
 ///
-/// 从 https://api.bilibili.com/x/web-interface/view?bvid={bv} 获取
+/// 从 `https://api.bilibili.com/x/web-interface/view?bvid={bv}` 获取
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize)]
 pub struct VideoInfo {

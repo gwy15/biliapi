@@ -63,6 +63,7 @@ impl Request for CheckQrLogin {
         const URL: &str = "https://passport.bilibili.com/qrcode/getLoginInfo";
         let request = client.post(URL).form(&[("oauthKey", oauth_key)]).send();
 
+        /// 这玩意儿跟一般的返回结果不一样，特殊处理
         #[derive(Debug, Deserialize)]
         struct Response {
             status: bool,

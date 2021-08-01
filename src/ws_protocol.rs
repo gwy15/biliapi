@@ -156,7 +156,7 @@ impl Packet {
         }
     }
 
-    /// 从 bytes 解析出一堆 [`Message`]
+    /// 从 bytes 解析出一堆 [`Packet`]
     pub fn from_bytes(bytes: &[u8], room_id: u64) -> Result<Vec<Packet>, ParseError> {
         use byteorder::{BigEndian, ReadBytesExt};
         use std::io::Read;
@@ -237,7 +237,7 @@ impl Packet {
         Ok(messages)
     }
 
-    /// 从 [`WsMessage`] 解析出一堆 [`Message`]
+    /// 从 [`WsMessage`] 解析出一堆 [`Packet`]
     pub fn from_ws_message(ws_message: WsMessage, room_id: u64) -> Result<Vec<Packet>, ParseError> {
         match ws_message {
             WsMessage::Binary(bytes) => Self::from_bytes(&bytes, room_id),
