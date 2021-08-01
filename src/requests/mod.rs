@@ -144,3 +144,6 @@ pub use user_info::UserInfo;
 
 mod vote_info;
 pub use vote_info::VoteInfo;
+
+mod my_account_info;
+pub use my_account_info::MyAccountInfo;
