@@ -3,7 +3,7 @@ use super::prelude::*;
 /// 通过房号拿到直播间的信息
 ///
 /// API 源：/xlive/web-room/v1/index/getInfoByRoom
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct InfoByRoom {
     /// 直播间信息
     pub room_info: RoomInfo,
@@ -11,7 +11,7 @@ pub struct InfoByRoom {
     pub anchor_info: AnchorInfo,
 }
 /// [`InfoByRoom`] 的子信息，代表直播间信息
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct RoomInfo {
     /// 长房号，如 5440
     pub room_id: u64,
@@ -23,13 +23,13 @@ pub struct RoomInfo {
     pub keyframe: String,
 }
 /// [`InfoByRoom`] 的子信息，跟主播相关的信息
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AnchorInfo {
     #[serde(rename = "base_info")]
     pub base: AnchorBaseInfo,
 }
 /// [`AnchorInfo`] 的子信息，跟主播相关的信息
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AnchorBaseInfo {
     // 用户名
     pub uname: String,

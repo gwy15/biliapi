@@ -2,7 +2,7 @@
 use crate::requests::prelude::*;
 
 /// 我的账号信息，需要鉴权
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MyAccountInfo {
     /// uid
     #[serde(rename = "mid")]

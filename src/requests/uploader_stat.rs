@@ -2,7 +2,7 @@ use crate::requests::prelude::*;
 use serde::Deserialize;
 
 /// up 主的统计信息，需要登录才可以获取
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Serialize, Clone, PartialEq, Eq)]
 pub struct UploaderStat {
     /// 视频阅读数
     pub video_views: u64,

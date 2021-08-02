@@ -3,7 +3,7 @@ use super::prelude::*;
 /// 获取用于连接直播间的弹幕服务器
 ///
 /// 从 /xlive/web-room/v1/index/getDanmuInfo 获取
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DanmuInfo {
     pub token: String,
     #[serde(rename = "host_list")]
@@ -11,7 +11,7 @@ pub struct DanmuInfo {
 }
 
 /// [`DanmuInfo`] 的子信息，连接直播间的弹幕服务器
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DanmuServer {
     pub host: String,
     pub port: u16,

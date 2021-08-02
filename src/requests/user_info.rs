@@ -1,7 +1,7 @@
 use crate::requests::prelude::*;
 
 /// 用户信息，返回如粉丝数、头像等信息
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct UserInfo {
     pub mid: u64,
     pub name: String,

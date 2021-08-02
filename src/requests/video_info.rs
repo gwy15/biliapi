@@ -8,7 +8,7 @@ use super::prelude::*;
 ///
 /// 从 `https://api.bilibili.com/x/web-interface/view?bvid={bv}` 获取
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VideoInfo {
     pub bvid: String,
     pub aid: u64,
@@ -38,7 +38,7 @@ pub struct VideoInfo {
 }
 
 /// 视频统计信息，点赞、弹幕数量等
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VideoStat {
     pub aid: u64,
     pub view: u64,

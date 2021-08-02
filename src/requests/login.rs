@@ -5,7 +5,7 @@
 use crate::requests::prelude::*;
 
 /// 发起一次二维码登录请求
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct QrLoginRequest {
     /// 二维码内容 url
     pub url: String,
@@ -26,7 +26,7 @@ impl Request for QrLoginRequest {
 }
 
 /// 检查二维码登录结果，需要轮询
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(untagged)]
 pub enum CheckQrLogin {
     /// -1：密钥错误

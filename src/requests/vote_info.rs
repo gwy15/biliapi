@@ -3,7 +3,7 @@ use crate::requests::prelude::*;
 use chrono::{DateTime, Utc};
 
 /// 通过 vote id 获取专栏投票信息，需要登录才可以获取具体票数
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VoteInfo {
     pub vote_id: u64,
 
@@ -43,7 +43,7 @@ impl Request for VoteInfo {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VoteOption {
     pub btn_str: String,
     pub cnt: u64,
