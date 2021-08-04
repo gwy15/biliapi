@@ -4,6 +4,14 @@ use std::time::Duration;
 
 use super::prelude::*;
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct VideoOwner {
+    pub mid: u64,
+    pub name: String,
+    #[serde(rename = "face")]
+    pub avatar_url: String,
+}
+
 /// 一个 BV 视频的信息
 ///
 /// 从 `https://api.bilibili.com/x/web-interface/view?bvid={bv}` 获取
@@ -35,6 +43,8 @@ pub struct VideoInfo {
     pub cover_url: String,
 
     pub stat: VideoStat,
+
+    pub owner: VideoOwner,
 }
 
 /// 视频统计信息，点赞、弹幕数量等
