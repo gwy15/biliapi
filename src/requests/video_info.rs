@@ -66,7 +66,8 @@ pub struct VideoStat {
     pub like: u64,
     /// 点踩数量，恒为0，没有数据
     pub dislike: u64,
-    /// 警告/争议提示信息
+    /// 警告/争议提示信息，有的时候没有
+    #[serde(default)]
     pub argue_msg: String,
 }
 
