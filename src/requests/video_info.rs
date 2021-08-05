@@ -23,6 +23,9 @@ pub struct VideoInfo {
     /// 稿件分P总数
     pub videos: usize,
     pub title: String,
+    /// 1：原创 2：转载
+    #[serde(default)]
+    pub copyright: i32,
 
     /// 稿件发布时间
     #[serde(rename = "pubdate", with = "chrono::serde::ts_seconds")]
