@@ -1,5 +1,22 @@
 //! 哔哩哔哩部分 API 接口实现
 //!
+//! # features
+//! 默认不指定 TLS 后端，需要手动指定。
+//! 
+//! ## native-tls
+//! 使用 native tls
+//! 
+//! ## rustls
+//! 使用 rustls
+//! 
+//! # live
+//! 启用 b 站直播相关 api，默认关闭
+//! 
+//! # live-native-tls / live-rustls
+//! 设置 live 的 tls 后端。这个 feature 需要跟 native-tls / rustls 同时设置，因为目前 cargo 的 
+//! [weak dependency features](https://doc.rust-lang.org/cargo/reference/unstable.html#weak-dependency-features)
+//! 还没 stable
+
 #[macro_use]
 extern crate log;
 #[macro_use]
@@ -7,6 +24,7 @@ extern crate serde;
 
 pub mod connection;
 pub mod requests;
+#[cfg(feature = "live")]
 pub mod ws_protocol;
 
 /// 各种可能遇到的错误
@@ -16,6 +34,7 @@ pub enum Error {
     #[error("Network error: {0}")]
     Network(#[from] reqwest::Error),
 
+    #[cfg(feature = "live")]
     /// 在连接 websocket 的时候可能发生的错误
     #[error("Websocket error: {0}")]
     WebSocket(#[from] async_tungstenite::tungstenite::Error),
@@ -36,6 +55,7 @@ pub enum Error {
     #[error("The request seems ok but no data is found.")]
     DataNotFound,
 
+    #[cfg(feature = "live")]
     /// 解析 websocket 协议时发生的错误
     #[error("Failed to parse as bilibili protocol: {0}")]
     Protocol(#[from] ws_protocol::ParseError),

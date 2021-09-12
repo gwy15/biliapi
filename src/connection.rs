@@ -1,18 +1,24 @@
 //! 连接模块，包括 http client 和 websocket （直播间）连接
 //!
-use futures::{stream::SplitStream, FutureExt, Stream, StreamExt};
 use reqwest::Client;
+#[cfg(feature = "live")]
 use std::{
     collections::VecDeque,
     future::Future,
     pin::Pin,
     task::{Context, Poll},
 };
+#[cfg(feature = "live")]
+use futures::{stream::SplitStream, FutureExt, Stream, StreamExt};
 
+#[cfg(feature = "live")]
 type WebSocketStream = async_tungstenite::WebSocketStream<async_tungstenite::tokio::ConnectStream>;
+#[cfg(feature = "live")]
 use async_tungstenite::tungstenite::Error as WsError;
 
+#[cfg(feature = "live")]
 use crate::ws_protocol;
+#[cfg(feature = "live")]
 type WsResult<T> = Result<T, WsError>;
 
 /// 创建一个新的 http 连接
@@ -25,6 +31,7 @@ pub fn new_client() -> reqwest::Result<Client> {
         .build()
 }
 
+#[cfg(feature = "live")]
 /// 直播间 websocket 连接，实现了 [`Stream`][`futures::Stream`]
 ///
 /// # Example
@@ -46,6 +53,7 @@ pub struct LiveConnection {
     read: SplitStream<WebSocketStream>,
     buffered_msg: VecDeque<ws_protocol::Packet>,
 }
+#[cfg(feature = "live")]
 impl LiveConnection {
     /// 从 url 建立一个新连接，需要 room_id 和 token，这些数据可以从
     /// [`InfoByRoom`][`crate::requests::InfoByRoom`] 拿到
@@ -73,6 +81,7 @@ impl LiveConnection {
         })
     }
 }
+#[cfg(feature = "live")]
 impl Stream for LiveConnection {
     type Item = crate::Result<ws_protocol::Packet>;
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {

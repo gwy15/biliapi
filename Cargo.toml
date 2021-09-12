@@ -1,6 +1,6 @@
 [package]
 name = "biliapi"
-version = "0.1.10-beta.8"
+version = "0.1.11"
 authors = ["gwy15 <gwy15thu@gmail.com>"]
 edition = "2018"
 description = "哔哩哔哩 API 的部分实现"
@@ -9,36 +9,41 @@ homepage = "https://github.com/gwy15/biliapi"
 repository = "https://github.com/gwy15/biliapi"
 documentation = "https://docs.rs/biliapi/"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[example]]
+name = "record-to-file"
+required-features = ["live"]
 
 [features]
-default = [ "rustls" ]
-native-tls = [
-    "reqwest/native-tls",
-    "async-tungstenite/tokio-native-tls"
+default = []
+native-tls = [ "reqwest/native-tls" ]
+rustls = [ "reqwest/rustls-tls" ]
+live = [
+    "async-tungstenite",
+    "byteorder",
+    "enum-repr",
+    "flate2",
+    "futures"
 ]
-rustls = [
-    "reqwest/rustls-tls",
-    "async-tungstenite/tokio-rustls"
-]
+live-native-tls = [ "async-tungstenite/tokio-native-tls" ]
+live-rustls = [ "async-tungstenite/tokio-rustls" ]
 
 [dependencies]
 reqwest = { version = "0.11.3", default-features = false, features = ["cookies", "json"] }
-async-tungstenite = { version = "0.13.1", default-features = false }
-futures = "0.3.15"
+# 直播
+async-tungstenite = { version = "0.13.1", default-features = false, optional = true }
+byteorder = { version = "1.4.3", optional = true }
+enum-repr = { version = "0.2.6", optional = true }
+flate2 = { version = "1.0.20", features = ["zlib"], optional = true }
+futures = { version = "0.3.15", optional = true }
+
 tokio = { version = "1.0", features = ["rt"] }
-
 thiserror = "1.0.24"
-
 log = "0.4.14"
+chrono = { version = "0.4.19", features = [ "serde" ] }
 
 serde = { version = "1.0.126", features = ["derive"] }
 serde_json = "1.0.64"
 serde_with = { version = "1.9.4", features = ["macros"] }
-byteorder = "1.4.3"
-enum-repr = "0.2.6"
-flate2 = { version = "1.0.20", features = ["zlib"] }
-chrono = { version = "0.4.19", features = [ "serde" ] }
 
 [dev-dependencies]
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "fs", "io-util"] }
@@ -48,7 +53,6 @@ pretty_env_logger = "0.4.0"
 dotenv = "0.15.0"
 # 命令行和 influx
 clap = "3.0.0-beta.2"
-influx_db_client = "0.5.0"
 # 登录
 qrcode = "0.12.0"
 # cookie 持久化
