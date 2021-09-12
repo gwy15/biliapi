@@ -20,4 +20,4 @@ jobs:
           cargo fmt -- --check
           cargo clippy -- -D warnings
           cargo test --features native-tls
-          cargo test --features native-tls,live
+          cargo test --features native-tls,live,live-native-tls
