@@ -2,18 +2,18 @@
 //!
 //! # features
 //! 默认不指定 TLS 后端，需要手动指定。
-//! 
+//!
 //! ## native-tls
 //! 使用 native tls
-//! 
+//!
 //! ## rustls
 //! 使用 rustls
-//! 
+//!
 //! # live
 //! 启用 b 站直播相关 api，默认关闭
-//! 
+//!
 //! # live-native-tls / live-rustls
-//! 设置 live 的 tls 后端。这个 feature 需要跟 native-tls / rustls 同时设置，因为目前 cargo 的 
+//! 设置 live 的 tls 后端。这个 feature 需要跟 native-tls / rustls 同时设置，因为目前 cargo 的
 //! [weak dependency features](https://doc.rust-lang.org/cargo/reference/unstable.html#weak-dependency-features)
 //! 还没 stable
 

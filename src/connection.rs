@@ -1,5 +1,7 @@
 //! 连接模块，包括 http client 和 websocket （直播间）连接
 //!
+#[cfg(feature = "live")]
+use futures::{stream::SplitStream, FutureExt, Stream, StreamExt};
 use reqwest::Client;
 #[cfg(feature = "live")]
 use std::{
@@ -8,8 +10,6 @@ use std::{
     pin::Pin,
     task::{Context, Poll},
 };
-#[cfg(feature = "live")]
-use futures::{stream::SplitStream, FutureExt, Stream, StreamExt};
 
 #[cfg(feature = "live")]
 type WebSocketStream = async_tungstenite::WebSocketStream<async_tungstenite::tokio::ConnectStream>;
