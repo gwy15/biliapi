@@ -70,7 +70,13 @@ impl LiveConnection {
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                 debug!("sending heartbeat...");
-                write.send(ws_protocol::Packet::heartbeat().into()).await?;
+                write
+                    .send(ws_protocol::Packet::heartbeat().into())
+                    .await
+                    .map_err(|e| {
+                        debug!("failed to send heartbeat: {:?}", e);
+                        e
+                    })?;
             }
         });
         Ok(Self {

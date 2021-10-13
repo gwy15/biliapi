@@ -10,5 +10,9 @@
         "ddpanel",
         "reqwest",
         "tungstenite"
+    ],
+    "rust-analyzer.cargo.features": [
+        "live",
+        "live-native-tls"
     ]
 }

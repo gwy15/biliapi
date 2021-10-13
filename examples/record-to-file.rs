@@ -66,12 +66,15 @@ async fn run<F: tokio::io::AsyncWrite + Unpin>(
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    pretty_env_logger::init();
+    pretty_env_logger::init_timed();
 
     let opts = Opts::parse();
 
-    let client = biliapi::connection::new_client()?;
+    let client = reqwest::ClientBuilder::new()
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36")
+        .build()?;
 
+    info!("获取房间信息 {}", opts.room_id);
     let room_info = biliapi::requests::InfoByRoom::request(&client, opts.room_id).await?;
     let room_id = room_info.room_info.room_id;
 

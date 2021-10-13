@@ -45,7 +45,15 @@ impl<T: DeserializeOwned> BiliResponse<T> {
     }
     pub async fn from_response(response: Response) -> Result<T> {
         if response.status() != StatusCode::OK {
-            return Err(Error::StatusCode(response.status()));
+            let status = response.status();
+            #[cfg(debug_assertions)]
+            debug!(
+                "status = {:?}, response text = {:?}",
+                status,
+                response.text().await
+            );
+
+            return Err(Error::StatusCode(status));
         }
         let response_text = response.text().await?;
         let this: Self = serde_json::from_str(&response_text).map_err(|e| {
@@ -53,6 +61,7 @@ impl<T: DeserializeOwned> BiliResponse<T> {
             e
         })?;
         if this.code != 0 {
+            debug!("response text = {}", response_text);
             return Err(Error::BiliCustom {
                 code: this.code,
                 message: this.message,

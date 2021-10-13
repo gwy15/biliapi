@@ -12,7 +12,7 @@ pub enum ParseError {
     #[error("Websocket packet type not supported: {0}")]
     WsTypeNotSupported(String),
 
-    #[error("IO error: {0}")]
+    #[error("IO error while parsing: {0}")]
     IO(#[from] std::io::Error),
 
     #[error("Encoding error: {0}")]
@@ -165,13 +165,19 @@ impl Packet {
         // parse bytes to messages
         let mut buffer: &[u8] = bytes;
         while !buffer.is_empty() {
+            // 见 magic::HEADER_SIZE
+            trace!("parsing header, buffer size = {:?} bytes", buffer.len());
+            if buffer.len() < magic::HEADER_SIZE {
+                debug!("header too small, ignore: {:2x?}", buffer);
+                break;
+            }
             let total_size = buffer.read_u32::<BigEndian>()?;
             let _raw_header_size = buffer.read_u16::<BigEndian>()?;
             let ver = buffer.read_u16::<BigEndian>()?;
             let operation = buffer.read_u32::<BigEndian>()?;
             let operation = Operation::from(operation);
             let seq_id = buffer.read_u32::<BigEndian>()?;
-            trace!("seq_id = {}", seq_id);
+            trace!("header parsed, seq_id = {}", seq_id);
             // read rest data
             let offset = total_size as usize - magic::HEADER_SIZE;
 
@@ -201,6 +207,7 @@ impl Packet {
                     // 烦不烦，能不能统一返回 string
                     let mut body_buffer = body_buffer;
                     let popularity = body_buffer.read_u32::<BigEndian>()?;
+                    debug!("got a heartbeat response: {}", popularity);
                     let message = Packet {
                         operation,
                         body: popularity.to_string(),
@@ -241,6 +248,10 @@ impl Packet {
     pub fn from_ws_message(ws_message: WsMessage, room_id: u64) -> Result<Vec<Packet>, ParseError> {
         match ws_message {
             WsMessage::Binary(bytes) => Self::from_bytes(&bytes, room_id),
+            WsMessage::Ping(_) => {
+                debug!("received a ping message, ignore");
+                Ok(vec![])
+            }
             ws_message => {
                 warn!("Unknown type of websocket message: {:?}", ws_message);
                 Err(ParseError::WsTypeNotSupported(ws_message.to_string()))
