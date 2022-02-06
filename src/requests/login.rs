@@ -81,6 +81,7 @@ impl Request for CheckQrLogin {
     }
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn test_get_qr_login_request() -> Result<()> {
     let client = crate::connection::new_client()?;
