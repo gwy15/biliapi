@@ -39,7 +39,7 @@ async fn persisted_client(
 
 /// 通过二维码登录一个客户端
 async fn login(client: &Client) -> Result<()> {
-    let request = biliapi::requests::QrLoginRequest::request(&client, ()).await?;
+    let request = biliapi::requests::QrLoginRequest::request(client, ()).await?;
 
     let code = QrCode::new(request.url.as_bytes())?;
     let string = code
@@ -57,7 +57,7 @@ async fn login(client: &Client) -> Result<()> {
     loop {
         sleep(Duration::from_secs(3)).await;
         let resp =
-            biliapi::requests::CheckQrLogin::request(&client, request.oauth_key.clone()).await?;
+            biliapi::requests::CheckQrLogin::request(client, request.oauth_key.clone()).await?;
         match resp.is_success() {
             Some(true) => {
                 info!("登录成功！");
@@ -86,7 +86,7 @@ async fn save_cookies(cookies: Arc<CookieStoreMutex>, path: impl AsRef<Path>) ->
         c.save_json(&mut buffer).map_err(|e| anyhow!(e))?;
     }
     let mut f = tokio::fs::File::create(path.as_ref()).await?;
-    f.write_all(&buffer).await?;
+    f.write_all(buffer).await?;
     Ok(())
 }
 

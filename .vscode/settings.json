@@ -1,15 +1,16 @@
 {
     "cSpell.words": [
         "Bili",
-        "Bilibili",
-        "UNREGISTER",
         "biliapi",
+        "Bilibili",
+        "bvid",
         "danmaku",
         "danmu",
         "danmuku",
         "ddpanel",
         "reqwest",
-        "tungstenite"
+        "tungstenite",
+        "UNREGISTER"
     ],
     "rust-analyzer.cargo.features": [
         "live",
