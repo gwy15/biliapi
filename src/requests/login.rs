@@ -66,9 +66,11 @@ impl Request for CheckQrLogin {
         /// 这玩意儿跟一般的返回结果不一样，特殊处理
         #[derive(Debug, Deserialize)]
         struct Response {
+            #[allow(unused)]
             status: bool,
             data: CheckQrLogin,
             #[serde(default)]
+            #[allow(unused)]
             message: String,
         }
 
@@ -79,6 +81,7 @@ impl Request for CheckQrLogin {
     }
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn test_get_qr_login_request() -> Result<()> {
     let client = crate::connection::new_client()?;

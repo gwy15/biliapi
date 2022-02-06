@@ -42,6 +42,7 @@ impl Request for UserInfo {
     }
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn test_user_info() {
     let client = crate::connection::new_client().unwrap();

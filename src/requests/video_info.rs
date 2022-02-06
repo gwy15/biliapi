@@ -85,6 +85,7 @@ impl Request for VideoInfo {
     }
 }
 
+#[cfg(test)]
 #[tokio::test]
 async fn test_video_info() -> Result<()> {
     let client = crate::connection::new_client()?;

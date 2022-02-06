@@ -1,6 +1,6 @@
 use anyhow::Result;
 use biliapi::Request;
-use clap::Clap;
+use clap::Parser;
 use futures::StreamExt;
 use log::*;
 use std::{
@@ -9,17 +9,12 @@ use std::{
 };
 use tokio::{fs, io::AsyncWriteExt};
 
-#[derive(Debug, clap::Clap)]
+#[derive(Debug, Parser)]
 struct Opts {
-    #[clap(about = "The live room id")]
+    #[clap(help = "The live room id")]
     room_id: u64,
 
-    #[clap(
-        long,
-        short,
-        about = "The output file",
-        default_value = "recorded.json"
-    )]
+    #[clap(long, short, help = "The output file", default_value = "recorded.json")]
     output: PathBuf,
 }
 
