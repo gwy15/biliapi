@@ -1,7 +1,7 @@
 use anyhow::Result;
 use biliapi::Request;
-use futures::StreamExt;
 use clap::Parser;
+use futures::StreamExt;
 use log::*;
 use std::{
     path::PathBuf,
@@ -14,12 +14,7 @@ struct Opts {
     #[clap(help = "The live room id")]
     room_id: u64,
 
-    #[clap(
-        long,
-        short,
-        help = "The output file",
-        default_value = "recorded.json"
-    )]
+    #[clap(long, short, help = "The output file", default_value = "recorded.json")]
     output: PathBuf,
 }
 
