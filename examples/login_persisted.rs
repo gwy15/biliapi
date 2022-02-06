@@ -1,7 +1,7 @@
 //! 这个实例进行登录并查询一个需要登录的接口
 use std::{path::Path, sync::Arc, time::Duration};
 
-use anyhow::*;
+use anyhow::{anyhow, bail, Result};
 use biliapi::Request;
 use cookie_store::CookieStore;
 use log::*;
