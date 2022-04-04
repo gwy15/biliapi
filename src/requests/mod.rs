@@ -26,7 +26,7 @@ use prelude::*;
 
 /// 哔哩哔哩返回的 http 原始 response 对应的结构
 #[derive(Debug, Deserialize, Serialize, Clone)]
-struct BiliResponse<T> {
+pub struct BiliResponse<T> {
     code: i64,
 
     #[serde(default)]
