@@ -1,6 +1,6 @@
 [package]
 name = "biliapi"
-version = "0.1.14"
+version = "0.1.14-bugfix"
 authors = ["gwy15 <gwy15thu@gmail.com>"]
 edition = "2021"
 description = "哔哩哔哩 API 的部分实现"
@@ -58,3 +58,7 @@ qrcode = "0.12.0"
 # cookie 持久化
 cookie_store = "0.15.0"
 reqwest_cookie_store = "0.2.0"
+
+
+[package.metadata.docs.rs]
+features = ["rustls", "live", "live-rustls"]
