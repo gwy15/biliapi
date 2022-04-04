@@ -140,7 +140,7 @@ mod danmu_info;
 pub use danmu_info::{DanmuInfo, DanmuServer};
 
 mod video_info;
-pub use video_info::{VideoInfo, VideoStat};
+pub use video_info::{VideoInfo, VideoPage, VideoStat};
 
 mod login;
 pub use login::{CheckQrLogin, QrLoginRequest};

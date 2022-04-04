@@ -53,6 +53,7 @@ pub struct VideoInfo {
     pub pages: Vec<VideoPage>,
 }
 
+/// 视频分 p 信息
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct VideoPage {
