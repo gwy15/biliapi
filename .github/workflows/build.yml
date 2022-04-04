@@ -47,7 +47,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check --features rustls
+          args: --all -- --check 
 
   clippy:
     name: Clippy

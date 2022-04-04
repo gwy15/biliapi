@@ -21,7 +21,10 @@
 compile_error!("至少应该启用一个 rustls 或是 native-tls features");
 #[cfg(all(feature = "rustls", feature = "native-tls"))]
 compile_error!("rustls 和 native-tls features 只能同时启用一个");
-#[cfg(all(feature = "live", not(any(feature = "live-native-tls", feature = "live-rustls"))))]
+#[cfg(all(
+    feature = "live",
+    not(any(feature = "live-native-tls", feature = "live-rustls"))
+))]
 compile_error!("live 必须和 live-native-tls 或 live-rustls 之中的一个同时启用");
 
 #[macro_use]
