@@ -64,6 +64,7 @@ impl Request for CheckQrLogin {
         let request = client.post(URL).form(&[("oauthKey", oauth_key)]).send();
 
         /// 这玩意儿跟一般的返回结果不一样，特殊处理
+        #[allow(unused)]
         #[derive(Debug, Deserialize)]
         struct Response {
             #[allow(unused)]

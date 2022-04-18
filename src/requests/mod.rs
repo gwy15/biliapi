@@ -88,11 +88,11 @@ impl<T: DeserializeOwned> BiliResponse<T> {
 /// # Ok(()) }
 /// ```
 ///
-pub trait BiliResponseExt<T: DeserializeOwned> {
-    fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>> + Send>>;
+pub trait BiliResponseExt {
+    fn bili_data<T: DeserializeOwned>(self) -> Pin<Box<dyn Future<Output = Result<T>> + Send>>;
 }
-impl<T: DeserializeOwned> BiliResponseExt<T> for Response {
-    fn bili_data(self) -> Pin<Box<dyn Future<Output = Result<T>> + Send>> {
+impl BiliResponseExt for Response {
+    fn bili_data<T: DeserializeOwned>(self) -> Pin<Box<dyn Future<Output = Result<T>> + Send>> {
         Box::pin(async move { BiliResponse::<T>::from_response(self).await })
     }
 }

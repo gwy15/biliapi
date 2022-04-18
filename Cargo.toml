@@ -1,6 +1,6 @@
 [package]
 name = "biliapi"
-version = "0.1.17"
+version = "0.1.18"
 authors = ["gwy15 <gwy15thu@gmail.com>"]
 edition = "2021"
 description = "哔哩哔哩 API 的部分实现"
@@ -15,8 +15,8 @@ required-features = ["live"]
 
 [features]
 default = []
-native-tls = [ "reqwest/native-tls" ]
-rustls = [ "reqwest/rustls-tls" ]
+native-tls = [ "reqwest/native-tls", "async-tungstenite?/tokio-native-tls" ]
+rustls = [ "reqwest/rustls-tls", "async-tungstenite?/tokio-rustls" ]
 live = [
     "async-tungstenite",
     "byteorder",
@@ -24,8 +24,6 @@ live = [
     "flate2",
     "futures"
 ]
-live-native-tls = [ "async-tungstenite/tokio-native-tls" ]
-live-rustls = [ "async-tungstenite/tokio-rustls" ]
 
 [dependencies]
 reqwest = { version = "0.11.3", default-features = false, features = ["cookies", "json"] }
@@ -61,4 +59,4 @@ reqwest_cookie_store = "0.2.0"
 
 
 [package.metadata.docs.rs]
-features = ["rustls", "live", "live-rustls"]
+features = ["rustls", "live"]
